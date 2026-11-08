@@ -80,6 +80,35 @@ svg{max-width:100%}
 }
 @media(max-width:560px){.brand-sub{display:none}}
 
+/* ---------- date range ---------- */
+.date-bar{position:sticky;top:70px;z-index:25;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 10px 24px -24px rgba(15,35,75,.55)}
+.date-bar[hidden]{display:none}
+.date-in{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding:9px 0 10px}
+.date-lead{display:flex;align-items:center;gap:9px;padding-bottom:2px}
+.date-ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--surface-2);border:1px solid var(--line);color:var(--blue);flex-shrink:0}
+.date-ico svg{width:17px;height:17px}
+.date-copy{display:flex;flex-direction:column;line-height:1.25}
+.date-kicker{font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:800}
+.date-copy b{font-size:.8rem;font-weight:700;color:var(--ink)}
+.date-fields{display:flex;gap:8px}
+.date-fields .field{margin:0}
+.date-fields .input{width:146px;padding:7px 9px;font-size:.83rem}
+.date-in .presets{display:flex;gap:5px;flex-wrap:wrap}
+.preset{border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:999px;padding:5px 11px;font-size:.73rem;font-weight:800;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.preset:hover{color:var(--ink);border-color:var(--line-strong)}
+.preset.is-active{background:var(--accent);border-color:var(--accent);color:#fff}
+.date-in .btn{margin-left:auto}
+.date-bar.has-range{border-bottom-color:color-mix(in srgb,var(--accent) 32%,var(--line))}
+@media(max-width:860px){
+  .date-bar{position:static}
+  .date-in{gap:10px}
+  .date-fields{order:3;width:100%}
+  .date-fields .field{flex:1}
+  .date-fields .input{width:100%}
+  .date-in .btn{margin-left:0}
+}
+@media(max-width:760px){.date-in{padding-top:8px}}
+
 /* ---------- shared ---------- */
 main{padding:28px 0 4px;min-height:60vh}
 .page{display:none}
@@ -202,6 +231,9 @@ h3{font-size:1rem;margin:0}
 .mini-bar{display:inline-block;width:74px;height:7px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden;vertical-align:middle;margin-right:7px}
 .mini-bar span{display:block;height:100%;border-radius:999px}
 .mini-pct{font-size:.75rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.chart-empty{display:grid;place-items:center;min-height:220px;padding:20px;text-align:center;color:var(--muted);font-size:.85rem;border:1px dashed var(--line-strong);border-radius:12px}
+.empty-note{color:var(--muted);font-size:.85rem;margin:6px 0 0;padding:14px;border:1px dashed var(--line);border-radius:10px}
+.float-note.is-ok .float-icon{background:var(--ok-soft);color:var(--ok)}
 .insight-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
 .insight{padding:18px 20px;border-left:3px solid var(--accent)}
 .insight span{display:block;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:800}
@@ -331,12 +363,38 @@ textarea{resize:vertical;min-height:92px}
   </div>
 </header>
 
+<div class="date-bar" id="dateBar" role="region" aria-label="Date range filter" hidden>
+  <div class="wrap date-in">
+    <div class="date-lead">
+      <span class="date-ico" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+      </span>
+      <div class="date-copy">
+        <span class="date-kicker">Date range</span>
+        <b id="dateSummary" aria-live="polite" aria-atomic="true">All dates</b>
+      </div>
+    </div>
+    <div class="date-fields">
+      <div class="field"><label for="dateFrom">From</label><input class="input" id="dateFrom" type="date"></div>
+      <div class="field"><label for="dateTo">To</label><input class="input" id="dateTo" type="date"></div>
+    </div>
+    <div class="presets" role="group" aria-label="Quick date ranges">
+      <button class="preset is-active" type="button" data-preset="all">All</button>
+      <button class="preset" type="button" data-preset="q1">Q1</button>
+      <button class="preset" type="button" data-preset="q2">Q2</button>
+      <button class="preset" type="button" data-preset="q3">Q3</button>
+      <button class="preset" type="button" data-preset="oct">Oct</button>
+    </div>
+    <button class="btn btn-outline btn-sm" id="dateReset" type="button">Clear</button>
+  </div>
+</div>
+
 <main id="main" tabindex="-1">
   <section class="page is-active" id="page-home" data-page>
     <div class="wrap">
       <div class="hero">
         <div class="hero-copy">
-          <span class="eyebrow-pill"><span class="dot"></span> FY2026 · January–October</span>
+          <span class="eyebrow-pill"><span class="dot"></span> <span id="heroPeriod">FY2026 · January–October</span></span>
           <h1>Management spend, <em>clearly in view.</em></h1>
           <p>One workspace for CDL Bank’s 100 expense records, approved budgets and the decisions that keep every department on plan.</p>
           <div class="hero-cta">
@@ -345,26 +403,26 @@ textarea{resize:vertical;min-height:92px}
             </a>
             <a class="btn btn-ghost" href="#request">Submit an expense</a>
           </div>
-          <div class="hero-meta"><span>100 records</span><span>8 departments</span><span>USD · 10% VAT</span></div>
+          <div class="hero-meta"><span id="heroRecords">100 records</span><span>8 departments</span><span>USD · 10% VAT</span></div>
         </div>
         <div class="hero-panel">
           <div class="glass">
-            <div class="glass-top"><span>Budget utilisation</span><span class="chip chip-warn">Warning</span></div>
+            <div class="glass-top"><span>Budget utilisation</span><span class="chip chip-warn" id="heroStatus">Warning</span></div>
             <div class="donut-wrap">
-              <svg class="donut" viewBox="0 0 160 160" role="img" aria-label="Budget utilisation 99.1 percent">
+              <svg class="donut" id="heroDonut" viewBox="0 0 160 160" role="img" aria-label="Budget utilisation 99.1 percent">
                 <circle cx="80" cy="80" r="62" fill="none" stroke="rgba(255,255,255,.15)" stroke-width="12"/>
                 <circle id="donutArc" cx="80" cy="80" r="62" fill="none" stroke="#ffc15e" stroke-width="12" stroke-linecap="round" stroke-dasharray="389.56" stroke-dashoffset="389.56" transform="rotate(-90 80 80)"/>
               </svg>
-              <div class="donut-center"><strong id="heroPct">99.1%</strong><span>of YTD budget</span></div>
+              <div class="donut-center"><strong id="heroPct">99.1%</strong><span id="heroPctLabel">of YTD budget</span></div>
             </div>
             <div class="glass-stats">
               <div><span>Actual (excl. VAT)</span><b id="heroActual">$241,299</b></div>
-              <div><span>Remaining</span><b id="heroRemaining">$2,201</b></div>
+              <div><span id="heroRemainingLabel">Remaining</span><b id="heroRemaining">$2,201</b></div>
             </div>
           </div>
-          <div class="float-note">
+          <div class="float-note" id="floatNote">
             <span class="float-icon" aria-hidden="true">!</span>
-            <div><b>5 categories over budget</b><span>Rent &amp; utilities, marketing, travel, supplies and insurance.</span></div>
+            <div><b id="floatTitle">5 categories over budget</b><span id="floatText">Rent &amp; utilities, marketing, travel, supplies and insurance.</span></div>
           </div>
         </div>
       </div>
@@ -374,7 +432,7 @@ textarea{resize:vertical;min-height:92px}
       <div class="split">
         <section class="card">
           <div class="card-head">
-            <div><span class="kicker">Attention</span><h2>Categories over budget</h2><p>Actual spend compared with the approved FY2026 budget.</p></div>
+            <div><span class="kicker">Attention</span><h2>Categories over budget</h2><p id="overDesc">Actual spend compared with the approved FY2026 budget.</p></div>
             <a class="text-link" href="#dashboard">View dashboard</a>
           </div>
           <div id="overList"></div>
@@ -389,8 +447,8 @@ textarea{resize:vertical;min-height:92px}
           </section>
           <section class="card">
             <span class="kicker">Monthly finding</span>
-            <h2>Rent &amp; utilities is the largest overrun</h2>
-            <p>$3,101 over budget (9.3%), driven mainly by branch rent and electricity. Travel is the largest percentage overrun at 14.2%.</p>
+            <h2 id="findingTitle">Rent &amp; utilities is the largest overrun</h2>
+            <p id="findingText">$3,101 over budget (9.3%), driven mainly by branch rent and electricity. Travel is the largest percentage overrun at 14.2%.</p>
             <a class="text-link" href="#dashboard">See the full breakdown →</a>
           </section>
         </div>
@@ -416,7 +474,7 @@ textarea{resize:vertical;min-height:92px}
   <section class="page" id="page-dashboard" data-page>
     <div class="wrap">
       <div class="page-head">
-        <div><span class="kicker">Reporting</span><h1>Finance dashboard</h1><p>January–October 2026 · USD, excluding VAT · 100 records</p></div>
+        <div><span class="kicker">Reporting</span><h1>Finance dashboard</h1><p id="dashSub">January–October 2026 · USD, excluding VAT · 100 records</p></div>
         <button class="btn btn-outline btn-sm" id="exportCats" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           Category CSV
@@ -424,34 +482,34 @@ textarea{resize:vertical;min-height:92px}
       </div>
       <div class="kpi-grid" id="dashKpis"></div>
       <div class="insight-strip">
-        <div class="card insight"><span>Largest overrun</span><b>Rent &amp; utilities · $3,101</b><small>9.3% above the approved budget</small></div>
-        <div class="card insight"><span>Largest % overrun</span><b>Travel &amp; transport · 14.2%</b><small>$996 above a $7,000 budget</small></div>
-        <div class="card insight"><span>Biggest underspend</span><b>Security &amp; maintenance · $3,067</b><small>15.7% below budget and available to reallocate</small></div>
+        <div class="card insight"><span>Largest overrun</span><b id="insOver">Rent &amp; utilities · $3,101</b><small id="insOverNote">9.3% above the approved budget</small></div>
+        <div class="card insight"><span>Largest % overrun</span><b id="insPct">Travel &amp; transport · 14.2%</b><small id="insPctNote">$996 above a $7,000 budget</small></div>
+        <div class="card insight"><span>Biggest underspend</span><b id="insUnder">Security &amp; maintenance · $3,067</b><small id="insUnderNote">15.7% below budget and available to reallocate</small></div>
       </div>
       <div class="chart-grid">
         <section class="card chart-card wide">
           <div class="card-head">
-            <div><h2>Budget vs actual by category</h2><p>Approved FY2026 budget and actual spend, excluding VAT.</p></div>
+            <div><h2>Budget vs actual by category</h2><p id="barsDesc">Approved FY2026 budget and actual spend, excluding VAT.</p></div>
             <div class="legend"><span><i style="background:var(--chart-budget)"></i>Budget</span><span><i style="background:var(--chart-actual)"></i>Actual</span></div>
           </div>
           <div class="chart" id="chartBars"></div>
         </section>
         <section class="card chart-card">
           <div class="card-head">
-            <div><h2>Monthly spend</h2><p>Actual management expense by month.</p></div>
+            <div><h2>Monthly spend</h2><p id="lineDesc">Actual management expense by month.</p></div>
             <div class="legend"><span><i style="background:var(--chart-actual)"></i>Actual</span><span><i style="background:var(--warn)"></i>Monthly budget avg.</span></div>
           </div>
           <div class="chart" id="chartLine"></div>
         </section>
         <section class="card chart-card">
           <div class="card-head">
-            <div><h2>Spend by department</h2><p>Administration and Finance make up 40.8% of total spend.</p></div>
+            <div><h2>Spend by department</h2><p id="deptDesc">Administration and Finance make up 40.8% of total spend.</p></div>
           </div>
           <div class="chart" id="chartDepts"></div>
         </section>
         <section class="card chart-card wide">
           <div class="card-head">
-            <div><h2>Category budget status</h2><p>Variance is budget minus actual. Positive variance is under budget.</p></div>
+            <div><h2>Category budget status</h2><p id="bvaDesc">Variance is budget minus actual. Positive variance is under budget.</p></div>
           </div>
           <div class="table-scroll">
             <table>
@@ -467,7 +525,7 @@ textarea{resize:vertical;min-height:92px}
   <section class="page" id="page-records" data-page>
     <div class="wrap">
       <div class="page-head">
-        <div><span class="kicker">Database</span><h1>Expense records</h1><p>All 100 management expense records for FY2026, January–October.</p></div>
+        <div><span class="kicker">Database</span><h1>Expense records</h1><p id="recSub">All 100 management expense records for FY2026, January–October.</p></div>
         <button class="btn btn-outline btn-sm" id="exportRecs" type="button">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
           Download CSV
@@ -586,16 +644,81 @@ const DATA = {"cats":[["Staff Training",17000,14745.36],["IT & Software",34500,3
 "use strict";
 const CATS = DATA.cats.map(([name, budget, actual]) => ({ name, budget, actual }));
 const RECS = DATA.recs.map(([id, date, dept, cat, vendor, desc, amount, status]) => ({ id, date, dept, cat, vendor, desc, amount, status }));
-const MONTHS = Object.entries(DATA.months).map(([label, value]) => ({ label, value }));
-const DEPTS = Object.entries(DATA.depts).map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-const TOTAL_ACTUAL = RECS.reduce((s, r) => s + r.amount, 0);
+const MONTH_KEYS = Object.keys(DATA.months);
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const TOTAL_BUDGET = CATS.reduce((s, c) => s + c.budget, 0);
-const TOTAL_REMAINING = TOTAL_BUDGET - TOTAL_ACTUAL;
-const OVER = CATS.filter(c => c.actual > c.budget).sort((a, b) => (b.actual - b.budget) - (a.actual - a.budget));
-const OVER_SUM = OVER.reduce((s, c) => s + c.actual - c.budget, 0);
-const UNDER_SUM = CATS.filter(c => c.actual < c.budget).reduce((s, c) => s + c.budget - c.actual, 0);
+const MIN_DATE = RECS.reduce((m, r) => r.date < m ? r.date : m, RECS[0].date);
+const MAX_REC_DATE = RECS.reduce((m, r) => r.date > m ? r.date : m, RECS[0].date);
+const FY_START = MIN_DATE.slice(0, 4) + '-01-01';
+const FY_END = (() => {
+  const d = new Date(MAX_REC_DATE + 'T00:00:00Z');
+  return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 0)).toISOString().slice(0, 10);
+})();
+const dayCount = (a, b) => Math.round((Date.parse(b + 'T00:00:00Z') - Date.parse(a + 'T00:00:00Z')) / 86400000) + 1;
+const FY_DAYS = dayCount(FY_START, FY_END);
+const dateState = { from: '', to: '' };
+const PRESETS = [
+  { key: 'all', label: 'All', from: '', to: '' },
+  { key: 'q1', label: 'Q1', from: FY_START, to: FY_START.slice(0, 4) + '-03-31' },
+  { key: 'q2', label: 'Q2', from: FY_START.slice(0, 4) + '-04-01', to: FY_START.slice(0, 4) + '-06-30' },
+  { key: 'q3', label: 'Q3', from: FY_START.slice(0, 4) + '-07-01', to: FY_START.slice(0, 4) + '-09-30' },
+  { key: 'oct', label: 'Oct', from: FY_START.slice(0, 4) + '-10-01', to: FY_END }
+];
+
+const dateActive = () => !!(dateState.from || dateState.to);
+const inDateRange = r => (!dateState.from || r.date >= dateState.from) && (!dateState.to || r.date <= dateState.to);
+const scopedRecords = () => RECS.filter(inDateRange);
+const selectedDays = () => dayCount(dateState.from || FY_START, dateState.to || FY_END);
+const budgetFactor = () => selectedDays() / FY_DAYS;
+const periodBudget = () => TOTAL_BUDGET * budgetFactor();
+
+function scopedCats(rows = scopedRecords()) {
+  const totals = new Map();
+  rows.forEach(r => totals.set(r.cat, (totals.get(r.cat) || 0) + r.amount));
+  const factor = budgetFactor();
+  return CATS.map(c => ({ name: c.name, budget: c.budget * factor, actual: totals.get(c.name) || 0 }));
+}
+function scopedMonths(rows = scopedRecords()) {
+  const totals = new Map();
+  rows.forEach(r => {
+    const key = MONTH_NAMES[Number(r.date.slice(5, 7)) - 1];
+    if (key) totals.set(key, (totals.get(key) || 0) + r.amount);
+  });
+  return MONTH_KEYS.filter(k => totals.has(k)).map(k => ({ label: k, value: totals.get(k) }));
+}
+function scopedDepts(rows = scopedRecords()) {
+  const totals = new Map();
+  rows.forEach(r => totals.set(r.dept, (totals.get(r.dept) || 0) + r.amount));
+  return [...totals].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
+}
+function splitCats(cats) {
+  return {
+    over: cats.filter(c => c.actual > c.budget).sort((a, b) => (b.actual - b.budget) - (a.actual - a.budget)),
+    under: cats.filter(c => c.actual < c.budget).sort((a, b) => (b.budget - b.actual) - (a.budget - a.actual))
+  };
+}
+const shortDate = iso => { const [, m, d] = iso.split('-').map(Number); return `${d} ${MONTH_NAMES[m - 1]}`; };
+const longDate = iso => { const [y, m, d] = iso.split('-').map(Number); return `${d} ${MONTH_NAMES[m - 1]} ${y}`; };
+function rangeLabel() {
+  if (!dateState.from && !dateState.to) return `January–October ${FY_START.slice(0, 4)}`;
+  if (dateState.from && dateState.to) {
+    if (dateState.from === dateState.to) return longDate(dateState.from);
+    if (dateState.from.slice(0, 4) === dateState.to.slice(0, 4)) return `${shortDate(dateState.from)} – ${shortDate(dateState.to)} ${dateState.from.slice(0, 4)}`;
+    return `${longDate(dateState.from)} – ${longDate(dateState.to)}`;
+  }
+  if (dateState.from) return `from ${longDate(dateState.from)}`;
+  return `up to ${longDate(dateState.to)}`;
+}
+function niceMax(v) {
+  if (!(v > 0)) return 1;
+  const pow = Math.pow(10, Math.floor(Math.log10(v)));
+  const n = v / pow;
+  const steps = [1, 1.2, 1.5, 2, 2.5, 3, 4, 5, 6, 8, 10];
+  return (steps.find(s => n <= s) || 10) * pow;
+}
 
 const money = n => '$' + Math.round(n).toLocaleString('en-US');
+const moneySigned = n => (n < 0 ? '−' : '') + money(Math.abs(n));
 const money2 = n => '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const compact = n => '$' + (n / 1000).toFixed(1) + 'k';
 const pct = n => n.toFixed(1) + '%';
@@ -618,37 +741,143 @@ function kpiCard(k) {
   return `<article class="card kpi ${k.tone ? 'kpi--' + k.tone : ''}"><div class="kpi-icon">${k.icon}</div><div><div class="label">${k.label}</div><div class="value">${k.value}</div><div class="note">${k.note}</div></div></article>`;
 }
 
-document.getElementById('homeKpis').innerHTML = [
-  { icon: I.wallet, label: 'Total actual', value: money(TOTAL_ACTUAL), note: 'Excluding VAT · Jan–Oct 2026' },
-  { icon: I.target, label: 'Approved budget', value: money(TOTAL_BUDGET), note: '10 categories · FY2026' },
-  { icon: I.gauge, label: 'Budget used', value: pct(util(TOTAL_ACTUAL, TOTAL_BUDGET)), note: 'Warning · above 90%', tone: 'warn' },
-  { icon: I.alert, label: 'Categories over budget', value: `${OVER.length} <small>of ${CATS.length}</small>`, note: `${money(OVER_SUM)} above plan · ${money(UNDER_SUM)} underspend`, tone: 'bad' }
-].map(kpiCard).join('');
+function renderHome(rows = scopedRecords()) {
+  const cats = scopedCats(rows);
+  const { over, under } = splitCats(cats);
+  const totalActual = rows.reduce((s, r) => s + r.amount, 0);
+  const budget = periodBudget();
+  const remaining = budget - totalActual;
+  const used = util(totalActual, budget);
+  const status = statusOf(totalActual, budget);
+  const overSum = over.reduce((s, c) => s + c.actual - c.budget, 0);
+  const underSum = under.reduce((s, c) => s + c.budget - c.actual, 0);
 
-const peakMonth = MONTHS.reduce((a, b) => b.value > a.value ? b : a);
-document.getElementById('dashKpis').innerHTML = [
-  { icon: I.wallet, label: 'Total actual', value: money(TOTAL_ACTUAL), note: '100 records · excluding VAT' },
-  { icon: I.target, label: 'Approved budget', value: money(TOTAL_BUDGET), note: 'FY2026 · January–October' },
-  { icon: I.gauge, label: 'Budget remaining', value: money(TOTAL_REMAINING), note: `${pct(util(TOTAL_REMAINING, TOTAL_BUDGET))} of the budget left` },
-  { icon: I.calendar, label: 'Peak month', value: peakMonth.label, note: `${money(peakMonth.value)} in management spend`, tone: 'warn' }
-].map(kpiCard).join('');
+  document.getElementById('homeKpis').innerHTML = [
+    { icon: I.wallet, label: 'Total actual', value: money(totalActual), note: `${rows.length} record${rows.length === 1 ? '' : 's'} · excluding VAT` },
+    { icon: I.target, label: dateActive() ? 'Budget for range' : 'Approved budget', value: money(budget), note: dateActive() ? `FY2026 · prorated for ${selectedDays()} days` : '10 categories · FY2026' },
+    { icon: I.gauge, label: 'Budget used', value: pct(used), note: `${status.label} · ${dateActive() ? 'of range budget' : 'of FY2026 budget'}`, tone: status.key === 'bad' ? 'bad' : status.key === 'warn' ? 'warn' : '' },
+    { icon: I.alert, label: 'Categories over budget', value: `${over.length} <small>of ${cats.length}</small>`, note: over.length ? `${money(overSum)} above plan · ${money(underSum)} underspend` : `No category over budget · ${money(underSum)} underspend`, tone: over.length ? 'bad' : '' }
+  ].map(kpiCard).join('');
 
-document.getElementById('overList').innerHTML = OVER.map(c => {
-  const u = util(c.actual, c.budget);
-  const over = c.actual - c.budget;
-  return `<div class="over-row">
-    <div><div class="name">${esc(c.name)}</div><div class="meta">${money(c.actual)} of ${money(c.budget)} · ${pct(u)} used</div><div class="bar"><span style="width:${Math.min(u, 100)}%;background:var(--bad)"></span></div></div>
-    <div class="amt">+${money(over)}<div class="meta">${pct(util(over, c.budget))} over</div></div>
-  </div>`;
-}).join('');
+  document.getElementById('heroPeriod').textContent = `FY2026 · ${dateActive() ? rangeLabel() : 'January–October'}`;
+  document.getElementById('heroRecords').textContent = `${rows.length} record${rows.length === 1 ? '' : 's'}`;
+  document.getElementById('heroPct').textContent = pct(used);
+  document.getElementById('heroPctLabel').textContent = dateActive() ? 'of range budget' : 'of YTD budget';
+  document.getElementById('heroActual').textContent = money(totalActual);
+  document.getElementById('heroRemainingLabel').textContent = remaining >= 0 ? 'Remaining' : 'Over budget';
+  document.getElementById('heroRemaining').textContent = moneySigned(remaining);
+  document.getElementById('donutArc').setAttribute('stroke-dashoffset', String(389.56 * (1 - Math.min(used / 100, 1))));
+  document.getElementById('heroDonut').setAttribute('aria-label', `Budget utilisation ${pct(used)}`);
+  const heroStatus = document.getElementById('heroStatus');
+  heroStatus.className = 'chip chip-' + status.key;
+  heroStatus.textContent = status.label;
 
-document.getElementById('heroPct').textContent = pct(util(TOTAL_ACTUAL, TOTAL_BUDGET));
-document.getElementById('heroActual').textContent = money(TOTAL_ACTUAL);
-document.getElementById('heroRemaining').textContent = money(TOTAL_REMAINING);
-document.getElementById('donutArc').setAttribute('stroke-dashoffset', String(389.56 * (1 - Math.min(TOTAL_ACTUAL / TOTAL_BUDGET, 1))));
+  const floatNote = document.getElementById('floatNote');
+  if (over.length) {
+    floatNote.classList.remove('is-ok');
+    document.getElementById('floatTitle').textContent = `${over.length} ${over.length === 1 ? 'category' : 'categories'} over budget`;
+    const names = over.slice(0, 3).map(c => c.name).join(', ');
+    document.getElementById('floatText').textContent = names + (over.length > 3 ? ` and ${over.length - 3} more.` : '.');
+  } else {
+    floatNote.classList.add('is-ok');
+    document.getElementById('floatTitle').textContent = 'Every category within budget';
+    document.getElementById('floatText').textContent = `All ${cats.length} categories are within the budget for this range.`;
+  }
 
-function renderBva() {
-  document.getElementById('bvaBody').innerHTML = CATS.map(c => {
+  document.getElementById('overDesc').textContent = dateActive()
+    ? 'Spend in the selected date range compared with the prorated FY2026 budget.'
+    : 'Actual spend compared with the approved FY2026 budget.';
+  document.getElementById('overList').innerHTML = over.length ? over.map(c => {
+    const u = util(c.actual, c.budget);
+    const amount = c.actual - c.budget;
+    return `<div class="over-row">
+      <div><div class="name">${esc(c.name)}</div><div class="meta">${money(c.actual)} of ${money(c.budget)} · ${pct(u)} used</div><div class="bar"><span style="width:${Math.min(u, 100)}%;background:var(--bad)"></span></div></div>
+      <div class="amt">+${money(amount)}<div class="meta">${pct(util(amount, c.budget))} over</div></div>
+    </div>`;
+  }).join('') : '<p class="empty-note">No category is over budget in the selected date range.</p>';
+
+  const findingTitle = document.getElementById('findingTitle');
+  const findingText = document.getElementById('findingText');
+  if (over.length) {
+    const top = over[0];
+    const topPct = [...over].sort((a, b) => util(b.actual, b.budget) - util(a.actual, a.budget))[0];
+    findingTitle.textContent = `${top.name} is the largest overrun`;
+    findingText.textContent = `${money(top.actual - top.budget)} over budget (${pct(util(top.actual - top.budget, top.budget))}).` +
+      (topPct.name === top.name ? '' : ` ${topPct.name} is the largest percentage overrun at ${pct(util(topPct.actual - topPct.budget, topPct.budget))}.`);
+  } else if (rows.length && under.length) {
+    const topUnder = under[0];
+    findingTitle.textContent = 'Every category is within budget';
+    findingText.textContent = `${topUnder.name} has the largest underspend at ${money(topUnder.budget - topUnder.actual)} below its range budget.`;
+  } else {
+    findingTitle.textContent = 'No spend in the selected range';
+    findingText.textContent = 'Choose different dates to see the category comparison.';
+  }
+}
+
+function renderDashboard(rows = scopedRecords()) {
+  const cats = scopedCats(rows);
+  const { over, under } = splitCats(cats);
+  const totalActual = rows.reduce((s, r) => s + r.amount, 0);
+  const budget = periodBudget();
+  const remaining = budget - totalActual;
+  const months = scopedMonths(rows);
+  const peak = months.length ? months.reduce((a, b) => b.value > a.value ? b : a) : null;
+  const depts = scopedDepts(rows);
+
+  document.getElementById('dashSub').textContent = `${rows.length} record${rows.length === 1 ? '' : 's'} · ${rangeLabel()} · USD, excluding VAT`;
+
+  document.getElementById('dashKpis').innerHTML = [
+    { icon: I.wallet, label: 'Total actual', value: money(totalActual), note: `${rows.length} record${rows.length === 1 ? '' : 's'} · excluding VAT` },
+    { icon: I.target, label: dateActive() ? 'Budget for range' : 'Approved budget', value: money(budget), note: dateActive() ? `FY2026 · prorated for ${selectedDays()} days` : 'FY2026 · January–October' },
+    { icon: I.gauge, label: remaining >= 0 ? 'Budget remaining' : 'Budget overrun', value: moneySigned(remaining), note: remaining >= 0 ? `${pct(util(remaining, budget))} of the ${dateActive() ? 'range ' : ''}budget left` : `${pct(util(-remaining, budget))} over the ${dateActive() ? 'range ' : ''}budget` },
+    { icon: I.calendar, label: 'Peak month', value: peak ? peak.label : '—', note: peak ? `${money(peak.value)} in management spend` : 'No records in range', tone: peak ? 'warn' : '' }
+  ].map(kpiCard).join('');
+
+  document.getElementById('barsDesc').textContent = dateActive()
+    ? 'Spend in the selected range compared with the prorated FY2026 budget, excluding VAT.'
+    : 'Approved FY2026 budget and actual spend, excluding VAT.';
+  document.getElementById('lineDesc').textContent = dateActive()
+    ? 'Actual management expense by month in the selected range.'
+    : 'Actual management expense by month.';
+  const top2 = depts.slice(0, 2);
+  const top2Share = totalActual ? top2.reduce((s, d) => s + d.value, 0) / totalActual * 100 : 0;
+  document.getElementById('deptDesc').textContent = depts.length
+    ? `${top2.map(d => d.name).join(' and ')} make up ${pct(top2Share)} of ${dateActive() ? 'range' : 'total'} spend.`
+    : 'No department spend in the selected range.';
+  document.getElementById('bvaDesc').textContent = dateActive()
+    ? 'Budgets are prorated by days for the selected range. Variance is budget minus actual.'
+    : 'Variance is budget minus actual. Positive variance is under budget.';
+
+  if (!rows.length) {
+    document.getElementById('insOver').textContent = 'No spend in range';
+    document.getElementById('insOverNote').textContent = 'Choose different dates to see overruns.';
+    document.getElementById('insPct').textContent = '—';
+    document.getElementById('insPctNote').textContent = 'No records in the selected range.';
+    document.getElementById('insUnder').textContent = '—';
+    document.getElementById('insUnderNote').textContent = 'No records in the selected range.';
+    return;
+  }
+
+  const top = over[0];
+  if (top) {
+    document.getElementById('insOver').textContent = `${top.name} · ${money(top.actual - top.budget)}`;
+    document.getElementById('insOverNote').textContent = `${pct(util(top.actual - top.budget, top.budget))} above the budget for this range`;
+    const topPct = [...over].sort((a, b) => util(b.actual - b.budget, b.budget) - util(a.actual - a.budget, a.budget))[0];
+    document.getElementById('insPct').textContent = `${topPct.name} · ${pct(util(topPct.actual - topPct.budget, topPct.budget))}`;
+    document.getElementById('insPctNote').textContent = `${money(topPct.actual - topPct.budget)} above a ${money(topPct.budget)} budget`;
+  } else {
+    document.getElementById('insOver').textContent = 'None';
+    document.getElementById('insOverNote').textContent = 'Every category is within its budget for this range.';
+    document.getElementById('insPct').textContent = '0.0%';
+    document.getElementById('insPctNote').textContent = 'No category is over budget.';
+  }
+  const topUnder = under[0];
+  document.getElementById('insUnder').textContent = topUnder ? `${topUnder.name} · ${money(topUnder.budget - topUnder.actual)}` : 'None';
+  document.getElementById('insUnderNote').textContent = topUnder ? `${pct(util(topUnder.budget - topUnder.actual, topUnder.budget))} below its budget for this range` : 'No category is under budget.';
+}
+
+function renderBva(cats = scopedCats()) {
+  document.getElementById('bvaBody').innerHTML = cats.map(c => {
     const s = statusOf(c.actual, c.budget), u = util(c.actual, c.budget), variance = c.budget - c.actual;
     const barColor = s.key === 'bad' ? 'var(--bad)' : s.key === 'warn' ? 'var(--warn)' : 'var(--ok)';
     return `<tr>
@@ -661,7 +890,6 @@ function renderBva() {
     </tr>`;
   }).join('');
 }
-renderBva();
 
 /* ---------- records ---------- */
 const recordState = { dept: '', cat: '', status: '', q: '', sortKey: 'date', sortDir: 'desc' };
@@ -679,6 +907,7 @@ fillSelect('rCat', '', CATS.map(c => c.name));
 function filteredRecords() {
   const q = recordState.q.toLowerCase();
   const rows = RECS.filter(r =>
+    inDateRange(r) &&
     (!recordState.dept || r.dept === recordState.dept) &&
     (!recordState.cat || r.cat === recordState.cat) &&
     (!recordState.status || r.status === recordState.status) &&
@@ -691,11 +920,14 @@ function filteredRecords() {
 
 function renderRecords() {
   const rows = filteredRecords();
+  document.getElementById('recSub').textContent = dateActive()
+    ? `${rows.length} of ${RECS.length} records · ${rangeLabel()} · USD, excluding VAT`
+    : `All ${RECS.length} management expense records for FY2026, January–October.`;
   document.getElementById('recBody').innerHTML = rows.length ? rows.map(r => `<tr>
     <td>${r.id}</td><td>${fmtDate(r.date)}</td><td>${esc(r.dept)}</td><td>${esc(r.cat)}</td>
     <td>${esc(r.vendor)}</td><td class="wrap">${esc(r.desc)}</td><td class="num">${money2(r.amount)}</td><td>${statusChip(r.status)}</td>
   </tr>`).join('') : '<tr><td colspan="8" class="empty">No records match your filters.</td></tr>';
-  document.getElementById('recCount').innerHTML = `Showing <b>${rows.length}</b> of ${RECS.length} records`;
+  document.getElementById('recCount').innerHTML = `Showing <b>${rows.length}</b> of ${RECS.length} records${dateActive() ? ` · ${rangeLabel()}` : ''}`;
   document.getElementById('recTotal').innerHTML = `Filtered total <b>${money2(rows.reduce((s, r) => s + r.amount, 0))}</b>`;
   document.getElementById('sortDate').textContent = recordState.sortKey === 'date' ? (recordState.sortDir === 'desc' ? '↓' : '↑') : '';
   document.getElementById('sortAmount').textContent = recordState.sortKey === 'amount' ? (recordState.sortDir === 'desc' ? '↓' : '↑') : '';
@@ -716,9 +948,69 @@ document.getElementById('clearFilters').addEventListener('click', () => {
   recordState.sortKey = 'date'; recordState.sortDir = 'desc';
   document.getElementById('q').value = '';
   ['fDep', 'fCat', 'fStatus'].forEach(id => document.getElementById(id).value = '');
-  renderRecords();
+  dateState.from = dateState.to = '';
+  renderAll();
 });
-renderRecords();
+
+/* ---------- date range ---------- */
+const dateFromEl = document.getElementById('dateFrom');
+const dateToEl = document.getElementById('dateTo');
+dateFromEl.min = dateToEl.min = FY_START;
+dateFromEl.max = dateToEl.max = FY_END;
+
+function clampDate(v) {
+  if (!v) return '';
+  if (v < FY_START) return FY_START;
+  if (v > FY_END) return FY_END;
+  return v;
+}
+function renderDateBar() {
+  const rows = scopedRecords();
+  document.getElementById('dateSummary').textContent = dateActive()
+    ? `${rangeLabel()} · ${rows.length} record${rows.length === 1 ? '' : 's'} · budget prorated`
+    : `All dates · ${rows.length} records`;
+  dateFromEl.value = dateState.from;
+  dateToEl.value = dateState.to;
+  const active = PRESETS.find(p => p.from === dateState.from && p.to === dateState.to);
+  document.querySelectorAll('[data-preset]').forEach(b => {
+    const on = !!active && b.dataset.preset === active.key;
+    b.classList.toggle('is-active', on);
+    b.setAttribute('aria-pressed', String(on));
+  });
+  document.getElementById('dateBar').classList.toggle('has-range', dateActive());
+}
+function commitRange(from, to) {
+  from = clampDate(from);
+  to = clampDate(to);
+  if (from && to && from > to) to = from;
+  dateState.from = from;
+  dateState.to = to;
+  renderAll();
+}
+dateFromEl.addEventListener('change', () => {
+  const from = clampDate(dateFromEl.value);
+  const to = clampDate(dateToEl.value);
+  commitRange(from, from && to && from > to ? from : to);
+});
+dateToEl.addEventListener('change', () => {
+  const to = clampDate(dateToEl.value);
+  const from = clampDate(dateFromEl.value);
+  commitRange(from && to && to < from ? to : from, to);
+});
+document.querySelectorAll('[data-preset]').forEach(b => b.addEventListener('click', () => {
+  const p = PRESETS.find(x => x.key === b.dataset.preset);
+  if (p) commitRange(p.from, p.to);
+}));
+document.getElementById('dateReset').addEventListener('click', () => commitRange('', ''));
+
+function renderAll() {
+  const rows = scopedRecords();
+  renderDateBar();
+  renderHome(rows);
+  renderDashboard(rows);
+  renderRecords();
+  if (document.getElementById('page-dashboard').classList.contains('is-active')) drawCharts();
+}
 
 /* ---------- csv + toast ---------- */
 function downloadCsv(filename, rows) {
@@ -746,7 +1038,8 @@ document.getElementById('exportRecs').addEventListener('click', () => {
   toast(`${rows.length} records exported to CSV`);
 });
 document.getElementById('exportCats').addEventListener('click', () => {
-  downloadCsv('cdl-category-budget-2026.csv', [['Category', 'Budget (USD)', 'Actual (USD)', 'Variance (USD)', 'Used %', 'Status'], ...CATS.map(c => [c.name, c.budget.toFixed(2), c.actual.toFixed(2), (c.budget - c.actual).toFixed(2), util(c.actual, c.budget).toFixed(1), statusOf(c.actual, c.budget).label])]);
+  const cats = scopedCats();
+  downloadCsv('cdl-category-budget-2026.csv', [['Category', 'Budget (USD)', 'Actual (USD)', 'Variance (USD)', 'Used %', 'Status'], ...cats.map(c => [c.name, c.budget.toFixed(2), c.actual.toFixed(2), (c.budget - c.actual).toFixed(2), util(c.actual, c.budget).toFixed(1), statusOf(c.actual, c.budget).label])]);
   toast('Category summary exported to CSV');
 });
 
@@ -756,38 +1049,46 @@ function chartColors() {
   return { ink: cssVar('--ink'), muted: cssVar('--muted'), line: cssVar('--line'), budget: cssVar('--chart-budget'), actual: cssVar('--chart-actual'), blue: cssVar('--blue'), warn: cssVar('--warn') };
 }
 
-function renderBarChart() {
+function renderBarChart(cats = scopedCats()) {
   const el = document.getElementById('chartBars');
   if (!el) return;
   const t = chartColors(), W = Math.max(el.clientWidth, 720), H = 400, ml = 56, mr = 16, mt = 26, mb = 96;
-  const plotW = W - ml - mr, plotH = H - mt - mb, max = 50000;
-  const group = plotW / CATS.length, barW = Math.min(22, group * .25);
+  const dataMax = Math.max(...cats.map(c => Math.max(c.budget, c.actual)), 1);
+  const max = niceMax(dataMax * 1.04);
+  const plotW = W - ml - mr, plotH = H - mt - mb;
+  const group = plotW / cats.length, barW = Math.min(22, group * .25);
   let s = `<svg viewBox="0 0 ${W} ${H}" style="min-width:${W}px" role="img" aria-label="Budget versus actual spending by category">`;
   for (let i = 0; i <= 5; i++) {
     const v = max * i / 5, y = mt + plotH - (v / max) * plotH;
     s += `<line x1="${ml}" y1="${y}" x2="${W - mr}" y2="${y}" stroke="${t.line}" stroke-width="1"/>`;
     s += `<text x="${ml - 10}" y="${y + 4}" text-anchor="end" font-size="11" fill="${t.muted}">$${v / 1000}k</text>`;
   }
-  CATS.forEach((c, i) => {
+  cats.forEach((c, i) => {
     const cx = ml + group * (i + .5);
     const bh = c.budget / max * plotH, ah = c.actual / max * plotH;
     s += `<rect x="${cx - barW - 2}" y="${mt + plotH - bh}" width="${barW}" height="${bh}" rx="3" fill="${t.budget}"><title>${esc(c.name)} budget: ${money(c.budget)}</title></rect>`;
     s += `<rect x="${cx + 2}" y="${mt + plotH - ah}" width="${barW}" height="${ah}" rx="3" fill="${t.actual}"><title>${esc(c.name)} actual: ${money2(c.actual)}</title></rect>`;
-    s += `<text x="${cx + 2 + barW / 2}" y="${mt + plotH - ah - 7}" text-anchor="middle" font-size="10" fill="${t.muted}">${compact(c.actual)}</text>`;
+    if (c.actual > 0) s += `<text x="${cx + 2 + barW / 2}" y="${mt + plotH - ah - 7}" text-anchor="middle" font-size="10" fill="${t.muted}">${compact(c.actual)}</text>`;
     const ly = mt + plotH + 16;
     s += `<text x="${cx}" y="${ly}" transform="rotate(-38 ${cx} ${ly})" text-anchor="end" font-size="10.5" fill="${t.muted}">${esc(c.name)}</text>`;
   });
   el.innerHTML = s + '</svg>';
 }
 
-function renderLineChart() {
+function renderLineChart(months = scopedMonths()) {
   const el = document.getElementById('chartLine');
   if (!el) return;
+  if (!months.length) {
+    el.innerHTML = '<div class="chart-empty">No expense records in the selected date range.</div>';
+    return;
+  }
   const t = chartColors(), W = Math.max(el.clientWidth, 420), H = 320, ml = 48, mr = 16, mt = 28, mb = 46;
-  const plotW = W - ml - mr, plotH = H - mt - mb, max = 50000;
-  const x = i => ml + plotW * (i / (MONTHS.length - 1));
-  const y = v => mt + plotH - (v / max) * plotH;
-  const avg = TOTAL_BUDGET / MONTHS.length, showValues = W >= 500;
+  const plotW = W - ml - mr, plotH = H - mt - mb;
+  const max = niceMax(Math.max(...months.map(m => m.value), TOTAL_BUDGET / MONTH_KEYS.length) * 1.08);
+  const x = i => months.length === 1 ? ml + plotW / 2 : ml + plotW * (i / (months.length - 1));
+  const base = mt + plotH;
+  const y = v => base - (v / max) * plotH;
+  const avg = TOTAL_BUDGET / MONTH_KEYS.length, showValues = W >= 500;
   let s = `<svg viewBox="0 0 ${W} ${H}" style="min-width:${W}px" role="img" aria-label="Monthly management expense line chart">`;
   s += `<defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${t.actual}" stop-opacity=".28"/><stop offset="1" stop-color="${t.actual}" stop-opacity="0"/></linearGradient></defs>`;
   for (let i = 0; i <= 5; i++) {
@@ -795,12 +1096,12 @@ function renderLineChart() {
     s += `<line x1="${ml}" y1="${gy}" x2="${W - mr}" y2="${gy}" stroke="${t.line}" stroke-width="1"/>`;
     s += `<text x="${ml - 9}" y="${gy + 4}" text-anchor="end" font-size="11.5" fill="${t.muted}">$${v / 1000}k</text>`;
   }
-  const pts = MONTHS.map((m, i) => `${x(i)},${y(m.value)}`).join(' ');
-  s += `<polygon points="${ml},${mt + plotH} ${pts} ${x(MONTHS.length - 1)},${mt + plotH}" fill="url(#areaGrad)"/>`;
+  const pts = months.map((m, i) => `${x(i)},${y(m.value)}`).join(' ');
+  s += `<polygon points="${x(0)},${base} ${pts} ${x(months.length - 1)},${base}" fill="url(#areaGrad)"/>`;
   s += `<line x1="${ml}" y1="${y(avg)}" x2="${W - mr}" y2="${y(avg)}" stroke="${t.warn}" stroke-width="1.5" stroke-dasharray="5 5" opacity=".8"/>`;
   s += `<text x="${W - mr}" y="${y(avg) - 7}" text-anchor="end" font-size="10.5" fill="${t.warn}">avg ${compact(avg)}</text>`;
   s += `<polyline points="${pts}" fill="none" stroke="${t.actual}" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>`;
-  MONTHS.forEach((m, i) => {
+  months.forEach((m, i) => {
     s += `<circle cx="${x(i)}" cy="${y(m.value)}" r="4" fill="${t.surface}" stroke="${t.actual}" stroke-width="2.4"><title>${m.label}: ${money2(m.value)}</title></circle>`;
     if (showValues) s += `<text x="${x(i)}" y="${y(m.value) - 11}" text-anchor="middle" font-size="10.5" fill="${t.muted}">${compact(m.value)}</text>`;
     s += `<text x="${x(i)}" y="${mt + plotH + 22}" text-anchor="middle" font-size="11.5" fill="${t.muted}">${m.label}</text>`;
@@ -808,14 +1109,19 @@ function renderLineChart() {
   el.innerHTML = s + '</svg>';
 }
 
-function renderDeptChart() {
+function renderDeptChart(depts = scopedDepts()) {
   const el = document.getElementById('chartDepts');
   if (!el) return;
+  if (!depts.length) {
+    el.innerHTML = '<div class="chart-empty">No department spend in the selected date range.</div>';
+    return;
+  }
   const t = chartColors(), W = Math.max(el.clientWidth, 460), H = 320, ml = W < 520 ? 112 : 138, mr = 76, mt = 12, mb = 12;
-  const plotW = W - ml - mr, plotH = H - mt - mb, max = 54000;
-  const rowH = plotH / DEPTS.length, barH = Math.min(24, rowH * .52);
+  const plotW = W - ml - mr, plotH = H - mt - mb;
+  const max = Math.max(...depts.map(d => d.value), 1) * 1.1;
+  const rowH = plotH / depts.length, barH = Math.min(24, rowH * .52);
   let s = `<svg viewBox="0 0 ${W} ${H}" style="min-width:${W}px" role="img" aria-label="Actual spend by department">`;
-  DEPTS.forEach((d, i) => {
+  depts.forEach((d, i) => {
     const cy = mt + rowH * (i + .5), w = d.value / max * plotW;
     s += `<text x="${ml - 11}" y="${cy + 4}" text-anchor="end" font-size="11.5" fill="${t.ink}">${esc(d.name)}</text>`;
     s += `<rect x="${ml}" y="${cy - barH / 2}" width="${Math.max(w, 2)}" height="${barH}" rx="5" fill="${t.blue}" opacity=".9"><title>${esc(d.name)}: ${money2(d.value)}</title></rect>`;
@@ -825,10 +1131,12 @@ function renderDeptChart() {
 }
 
 function drawCharts() {
-  renderBva();
-  renderBarChart();
-  renderLineChart();
-  renderDeptChart();
+  const rows = scopedRecords();
+  const cats = scopedCats(rows);
+  renderBva(cats);
+  renderBarChart(cats);
+  renderLineChart(scopedMonths(rows));
+  renderDeptChart(scopedDepts(rows));
 }
 let chartResizeTimer;
 addEventListener('resize', () => {
@@ -1039,6 +1347,7 @@ function route() {
   if (page === 'dashboard') drawCharts();
   if (page === 'records') renderRecords();
   if (page === 'request') renderSaved();
+  document.getElementById('dateBar').hidden = !['home', 'dashboard', 'records'].includes(page);
   document.title = TITLES[page];
   closeMenu();
   window.scrollTo(0, 0);
@@ -1048,6 +1357,7 @@ addEventListener('hashchange', route);
 /* ---------- init ---------- */
 document.getElementById('rDate').value = new Date().toISOString().slice(0, 10);
 renderSaved();
+renderAll();
 route();
 </script>
 </body>
